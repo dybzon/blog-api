@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
-
-namespace BlogApi.Models
+﻿namespace BlogApi.Models
 {
+    using System.Collections.Generic;
+
     public class Article : ArticleMetaInfo
     {
-        public IList<ArticleItem> ArticleItems { get; set; }
+        public IEnumerable<ArticleItem> ArticleItems { get; set; }
+
+        public Article(ArticleMetaInfo other): base(other)
+        {
+        }
     }
 }

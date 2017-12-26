@@ -1,126 +1,80 @@
-﻿using System;
-using System.Collections.Generic;
-using BlogApi.Models;
-
-namespace BlogApi.Repositories
+﻿namespace BlogApi.Repositories
 {
+    using System.Collections.Generic;
+    using BlogApi.Models;
+    using System.Data.SqlClient;
+
     public static class ArticleRepository
     {
         public static Article GetArticle(int articleId)
         {
-            var article = new Article
-            {
-                Id = 1,
-                Subject = "Constraints and indexes",
-                Author = "Rasmus Dybkjær",
-                Category = "SQL Server",
-                SubCategory = "Developers",
-                Level = 3,
-                Created = DateTime.Now,
-                ArticleItems = new List<ArticleItem>()
-            };
-
-            foreach(var item in GetArticleItems(articleId))
-            {
-                article.ArticleItems.Add(item);
-            }
-
+            var article = new Article(GetArticleMetaInfo(articleId));
+            article.ArticleItems = GetArticleItems(articleId);
             return article;
         }
 
-        public static IList<ArticleMetaInfo> GetArticleMetaInfo()
+        public static IEnumerable<ArticleMetaInfo> GetArticleMetaInfo()
         {
-            var articles = new List<ArticleMetaInfo>();
+            using (SqlConnection connection = new SqlConnection(DatabaseConnector.getDbConnectionStringBuilder().ConnectionString))
+            {
+                connection.Open();
+                var sql = @"SELECT a.Id, a.[Subject], a.Author, c.[Name] AS Category, sc.[Name] AS SubCategory, a.[Level], a.Created 
+                            FROM Content.Articles a
+                                INNER JOIN Content.Categories c ON c.Id = a.CategoryId
+                                INNER JOIN Content.SubCategories sc ON sc.Id = a.SubCategoryId";
 
-            articles.Add(new ArticleMetaInfo
-            {
-                Id = 1,
-                Subject = "Constraints and indexes",
-                Author = "Rasmus Dybkjær",
-                Category = "SQL Server",
-                SubCategory = "Developers",
-                Level = 3,
-                Created = DateTime.Now,
-            });
-            articles.Add(new ArticleMetaInfo
-            {
-                Id = 2,
-                Subject = "Finding blocking queries",
-                Author = "Rasmus Dybkjær",
-                Category = "SQL Server",
-                SubCategory = "DBA",
-                Level = 3,
-                Created = DateTime.Now,
-            });
-            articles.Add(new ArticleMetaInfo
-            {
-                Id = 3,
-                Subject = "Execution plans bla bla",
-                Author = "Rasmus Dybkjær",
-                Category = "SQL Server",
-                SubCategory = "DBA",
-                Level = 3,
-                Created = DateTime.Now,
-            });
-            articles.Add(new ArticleMetaInfo
-            {
-                Id = 4,
-                Subject = "Mapping in js",
-                Author = "Rasmus Dybkjær",
-                Category = "JavaScript",
-                SubCategory = "Map",
-                Level = 4,
-                Created = DateTime.Now,
-            }); articles.Add(new ArticleMetaInfo
-            {
-                Id = 5,
-                Subject = "Writing React with TypeScript",
-                Author = "Rasmus Dybkjær",
-                Category = "TypeScript",
-                SubCategory = "React",
-                Level = 2,
-                Created = DateTime.Now,
-            });
-
-            return articles;
+                using (SqlCommand command = new SqlCommand(sql, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            yield return ArticleMetaInfo.LoadFromReader(reader);
+                        }
+                    }
+                }
+            }
         }
 
-        public static IList<ArticleItem> GetArticleItems(int articleId)
+        public static ArticleMetaInfo GetArticleMetaInfo(int articleId)
         {
-            var articleItems = new List<ArticleItem>();
-            var articles = GetArticleMetaInfo();
-            articleItems.Add(new ArticleItem
+            using (SqlConnection connection = new SqlConnection(DatabaseConnector.getDbConnectionStringBuilder().ConnectionString))
             {
-                Id = 1,
-                Text = "Here is the article called " + articles[articleId - 1].Subject,
-                Type = ArticleItemType.Text
-            });
-            articleItems.Add(new ArticleItem
-            {
-                Id = 2,
-                Text = "SELECT * \nFROM dbo.Table \nWHERE x = 5;",
-                Type = ArticleItemType.Code,
-            });
-            articleItems.Add(new ArticleItem
-            {
-                Id = 3,
-                Text = "Perhaps we should try something else? How about some line breaks 'n' stuff?",
-                Type = ArticleItemType.Text,
-            });
-            articleItems.Add(new ArticleItem
-            {
-                Id = 4,
-                Text = "UPDATE dbo.Table\nSET Code = 'Nix'\nWHERE POWER(y, 3) < 10;",
-                Type = ArticleItemType.Code,
-            });
-            articleItems.Add(new ArticleItem
-            {
-                Id = 5,
-                Text = "This is the end of my first article!",
-                Type = ArticleItemType.Text,
-            });
+                connection.Open();
+                var sql = $@"SELECT a.Id, a.[Subject], a.Author, c.[Name] AS Category, sc.[Name] AS SubCategory, a.[Level], a.Created 
+                            FROM Content.Articles a
+                                INNER JOIN Content.Categories c ON c.Id = a.CategoryId
+                                INNER JOIN Content.SubCategories sc ON sc.Id = a.SubCategoryId
+                            WHERE a.Id = {articleId}";
 
-            return articleItems;
+                using (SqlCommand command = new SqlCommand(sql, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        reader.Read();
+                        return ArticleMetaInfo.LoadFromReader(reader);
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<ArticleItem> GetArticleItems(int articleId)
+        {
+            using (SqlConnection connection = new SqlConnection(DatabaseConnector.getDbConnectionStringBuilder().ConnectionString))
+            {
+                connection.Open();
+                var sql = $"SELECT Id, Type, Content FROM Content.ArticleItems WHERE ArticleId = {articleId}";
+                using (SqlCommand command = new SqlCommand(sql, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            yield return ArticleItem.LoadFromReader(reader);
+                        }
+                    }
+                }
+            }
         }
     }
 }

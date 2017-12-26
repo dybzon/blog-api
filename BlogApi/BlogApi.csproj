@@ -96,6 +96,7 @@
     <Compile Include="Models\ArticleMetaInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\ArticleRepository.cs" />
+    <Compile Include="Repositories\DatabaseConnector.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
