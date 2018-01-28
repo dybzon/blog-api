@@ -9,6 +9,17 @@
         {
         }
 
+        public ArticleMetaInfo(Article article)
+        {
+            this.Id = article.Id;
+            this.Subject = article.Subject;
+            this.Author = article.Author;
+            this.Created = article.Created;
+            this.Category = article.Category;
+            this.SubCategory = article.SubCategory;
+            this.Level = article.Level;
+        }
+
         protected ArticleMetaInfo(ArticleMetaInfo other)
         {
             this.Id = other.Id;

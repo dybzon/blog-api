@@ -9,6 +9,7 @@ namespace BlogApi
         {
             GlobalConfiguration.Configure(WebApiConfig.Register);
             GlobalConfiguration.Configuration.Filters.Add(new CustomHeaderFilter()); // Allow CORS
+            GlobalConfiguration.Configuration.Formatters.Remove(GlobalConfiguration.Configuration.Formatters.XmlFormatter);
         }
     }
 }

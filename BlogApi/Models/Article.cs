@@ -4,10 +4,14 @@
 
     public class Article : ArticleMetaInfo
     {
-        public IEnumerable<ArticleItem> ArticleItems { get; set; }
+        public Article()
+        {
+        }
 
         public Article(ArticleMetaInfo other): base(other)
         {
         }
+
+        public IEnumerable<ArticleItem> ArticleItems { get; set; }
     }
 }
